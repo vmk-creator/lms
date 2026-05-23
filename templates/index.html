@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+<div class="row">
+    <div class="col-md-4 mb-3">
+        <div class="card text-white bg-primary">
+            <div class="card-body text-center">
+                <h5 class="card-title">Subjects</h5>
+                <h2>{{ subject_count }}</h2>
+                <a href="{{ url_for('subjects') }}" class="btn btn-light btn-sm">Manage</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-3">
+        <div class="card text-white bg-success">
+            <div class="card-body text-center">
+                <h5 class="card-title">Students</h5>
+                <h2>{{ student_count }}</h2>
+                <a href="{{ url_for('students') }}" class="btn btn-light btn-sm">Manage</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-3">
+        <div class="card text-white bg-info">
+            <div class="card-body text-center">
+                <h5 class="card-title">Today's Attendance</h5>
+                <h2>{{ today_attendance }}</h2>
+                <a href="{{ url_for('attendance') }}" class="btn btn-light btn-sm">Mark</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

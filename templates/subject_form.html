@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+{% block title %}{{ title }}{% endblock %}
+{% block content %}
+<h2>{{ title }}</h2>
+<form method="POST">
+    {{ form.hidden_tag() }}
+    <div class="mb-3">
+        {{ form.name.label(class="form-label") }}
+        {{ form.name(class="form-control") }}
+    </div>
+    <div class="mb-3">
+        {{ form.code.label(class="form-label") }}
+        {{ form.code(class="form-control") }}
+    </div>
+    <div class="mb-3" id="sectionField">
+        {{ form.section.label(class="form-label") }}
+        {{ form.section(class="form-select") }}
+    </div>
+    <div class="mb-3" id="batchField">
+        {{ form.batch.label(class="form-label") }}
+        {{ form.batch(class="form-control") }}
+        <div class="form-text">Required for Lab sections and Lab category subjects</div>
+    </div>
+    <div class="mb-3">
+        {{ form.category.label(class="form-label") }}
+        {{ form.category(class="form-select", onchange="toggleFields()") }}
+    </div>
+    {{ form.submit(class="btn btn-primary") }}
+    <a href="{{ url_for('subjects') }}" class="btn btn-secondary">Cancel</a>
+</form>
+<script>
+function toggleFields() {
+    var cat = document.getElementById('{{ form.category.id }}').value;
+    var sec = document.getElementById('{{ form.section.id }}').value;
+    var showSection = cat === 'IPCC';
+    var showBatch = cat === 'Lab' || sec === 'Lab';
+    document.getElementById('sectionField').style.display = showSection ? '' : 'none';
+    document.getElementById('batchField').style.display = showBatch ? '' : 'none';
+}
+document.getElementById('{{ form.section.id }}').addEventListener('change', toggleFields);
+toggleFields();
+</script>
+{% endblock %}

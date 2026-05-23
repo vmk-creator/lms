@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+{% block title %}Reports & Export{% endblock %}
+{% block content %}
+<h2>Attendance Reports</h2>
+
+<h5 class="mt-3">Per Subject</h5>
+<table class="table table-striped">
+    <thead>
+        <tr><th>Subject</th><th>Code</th><th>Section</th><th>Batch</th><th>Category</th><th>Export</th></tr>
+    </thead>
+    <tbody>
+        {% for subject in subjects %}
+        <tr>
+            <td>{{ subject.name }}</td>
+            <td>{{ subject.code }}</td>
+            <td>{{ subject.section or '-' }}</td>
+            <td>{{ subject.batch or '-' }}</td>
+            <td><span class="badge bg-secondary">{{ subject.category }}</span></td>
+            <td>
+                <a href="{{ url_for('export_excel', subject_id=subject.id) }}" class="btn btn-sm btn-success">Attendance</a>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<h5 class="mt-4">IPCC Combined (Theory + Lab)</h5>
+<table class="table table-striped">
+    <thead>
+        <tr><th>Subject Code</th><th>Name</th><th>Export</th></tr>
+    </thead>
+    <tbody>
+        {% set seen = [] %}
+        {% for subject in subjects %}
+        {% if subject.category == 'IPCC' and subject.code not in seen %}
+        {% set _ = seen.append(subject.code) %}
+        <tr>
+            <td>{{ subject.code }}</td>
+            <td>{{ subject.name }}</td>
+            <td>
+                <a href="{{ url_for('ipcc_combined_report', code=subject.code) }}" class="btn btn-sm btn-info">
+                    Combined Report (with CIE)
+                </a>
+            </td>
+        </tr>
+        {% endif %}
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

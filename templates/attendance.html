@@ -1,0 +1,120 @@
+{% extends 'base.html' %}
+{% block title %}Attendance{% endblock %}
+{% block content %}
+<h2>Mark Attendance</h2>
+
+<div class="card mb-3">
+    <div class="card-body py-2">
+        <form method="GET" class="row g-2 align-items-center">
+            <div class="col-auto">
+                <label class="col-form-label"><strong>Category:</strong></label>
+            </div>
+            <div class="col-auto">
+                <select name="category" class="form-select form-select-sm" onchange="this.form.submit()">
+                    <option value="">All Categories</option>
+                    {% for c in categories %}
+                    <option value="{{ c }}" {% if selected_category == c %}selected{% endif %}>{{ c }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </form>
+    </div>
+</div>
+
+<form method="POST" class="row g-3 mb-4">
+    {{ form.hidden_tag() }}
+    <div class="col-md-4">
+        {{ form.subject.label(class="form-label") }}
+        {{ form.subject(class="form-select") }}
+    </div>
+    <div class="col-md-4">
+        {{ form.date.label(class="form-label") }}
+        {{ form.date(class="form-control", type="date") }}
+    </div>
+    <div class="col-md-4 d-flex align-items-end">
+        {{ form.submit(class="btn btn-primary") }}
+    </div>
+</form>
+
+{% if students_data is not none %}
+<h4>{{ subject.name }} - {{ att_date }}</h4>
+{% if students_data %}
+<form id="attendanceForm" action="{{ url_for('attendance_save_all') }}" method="POST" class="mb-3">
+    <input type="hidden" name="subject_id" value="{{ subject.id }}">
+    <input type="hidden" name="date" value="{{ att_date }}">
+
+    <div class="d-flex gap-2 mb-2">
+        <button type="submit" class="btn btn-primary">Save All</button>
+        <button type="button" class="btn btn-outline-danger" onclick="resetAttendance()">Reset</button>
+        <button type="button" class="btn btn-outline-success" onclick="markAll('Present')">All Present</button>
+        <button type="button" class="btn btn-outline-warning" onclick="markAll('Absent')">All Absent</button>
+    </div>
+
+    <table class="table table-bordered" id="attendanceTable">
+        <thead>
+            <tr><th>Roll No</th><th>Name</th><th class="text-center">Present</th><th class="text-center">Absent</th></tr>
+        </thead>
+        <tbody>
+            {% for item in students_data %}
+            {% set i = loop.index0 %}
+            <tr>
+                <td>{{ item.student.roll_number }}</td>
+                <td>{{ item.student.name }}</td>
+                <td class="text-center">
+                    <input type="hidden" name="student_id" value="{{ item.student.id }}">
+                    <input type="radio" name="status_{{ i }}" value="Present"
+                           class="btn-check" id="p_{{ item.student.id }}" autocomplete="off"
+                           {% if item.status == 'Present' %}checked{% endif %}>
+                    <label class="btn btn-outline-success btn-sm px-3" for="p_{{ item.student.id }}">P</label>
+                </td>
+                <td class="text-center">
+                    <input type="radio" name="status_{{ i }}" value="Absent"
+                           class="btn-check" id="a_{{ item.student.id }}" autocomplete="off"
+                           {% if item.status == 'Absent' %}checked{% endif %}>
+                    <label class="btn btn-outline-danger btn-sm px-3" for="a_{{ item.student.id }}">A</label>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</form>
+{% else %}
+<div class="alert alert-warning">No students enrolled in this subject. Enroll students first.</div>
+{% endif %}
+{% endif %}
+
+<form id="resetForm" action="{{ url_for('attendance_reset') }}" method="POST" style="display:none">
+    <input type="hidden" name="subject_id" value="{{ subject.id if subject else '' }}">
+    <input type="hidden" name="date" value="{{ att_date }}">
+</form>
+
+{% if students_data %}
+<script>
+document.addEventListener('keydown', function(e) {
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT' || e.target.tagName === 'TEXTAREA') return;
+    if (e.key.toLowerCase() === 'p' || e.key.toLowerCase() === 'a') {
+        e.preventDefault();
+        var rows = document.querySelectorAll('#attendanceTable tbody tr');
+        var focused = document.activeElement;
+        var row = focused && focused.closest('tr');
+        if (!row) row = rows[0];
+        var radio = row.querySelector('input[value="' + (e.key.toLowerCase() === 'p' ? 'Present' : 'Absent') + '"]');
+        if (radio) { radio.checked = true; }
+        var next = row.nextElementSibling || rows[0];
+        var firstRadio = next.querySelector('input[value="Present"]');
+        if (firstRadio) firstRadio.focus();
+    }
+});
+
+function resetAttendance() {
+    if (confirm('Reset all attendance for this date?')) {
+        document.getElementById('resetForm').submit();
+    }
+}
+
+function markAll(status) {
+    document.querySelectorAll('input[value="' + status + '"]').forEach(function(r) { r.checked = true; });
+}
+</script>
+{% endif %}
+{% endblock %}

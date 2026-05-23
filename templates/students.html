@@ -1,0 +1,109 @@
+{% extends 'base.html' %}
+{% block title %}Students{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2>Students</h2>
+    <div>
+        <a href="{{ url_for('add_student') }}" class="btn btn-primary">+ Add Student</a>
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-body">
+        <h5 class="card-title">Bulk Upload via Excel</h5>
+        <p class="text-muted">Upload an .xlsx file with columns: <strong>USN</strong>, <strong>Full Name</strong>, <strong>Mail ID</strong></p>
+        <form action="{{ url_for('bulk_upload_students') }}" method="POST" enctype="multipart/form-data" class="row g-2">
+            <div class="col-auto">
+                <input type="file" name="file" class="form-control" accept=".xlsx,.xls" required>
+            </div>
+            <div class="col-auto">
+                <button type="submit" class="btn btn-success">Upload</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card mb-3">
+    <div class="card-body py-2">
+        <form method="GET" class="row g-2 align-items-center">
+            <div class="col-auto">
+                <label class="col-form-label"><strong>Filter by Subject:</strong></label>
+            </div>
+            <div class="col-auto">
+                <select name="subject_id" class="form-select" onchange="this.form.submit()">
+                    <option value="">All Students</option>
+                    {% for s in subjects %}
+                    <option value="{{ s.id }}" {% if selected_subject and selected_subject.id == s.id %}selected{% endif %}>{{ s.name }} ({{ s.code }})</option>
+                    {% endfor %}
+                </select>
+            </div>
+            {% if selected_subject %}
+            <div class="col-auto">
+                <a href="{{ url_for('students') }}" class="btn btn-outline-secondary btn-sm">Clear</a>
+            </div>
+            {% endif %}
+        </form>
+    </div>
+</div>
+
+<form id="batchForm" action="{{ url_for('batch_enroll_students') }}" method="POST">
+<div class="card mb-3 d-none" id="batchBar">
+    <div class="card-body py-2 d-flex align-items-center gap-2">
+        <span id="selectedCount" class="fw-bold me-2">0 selected</span>
+        <select name="subject_id" class="form-select form-select-sm" style="width:auto" required>
+            <option value="">-- Select Subject --</option>
+            {% for s in subjects %}
+            <option value="{{ s.id }}">{{ s.name }} ({{ s.code }})</option>
+            {% endfor %}
+        </select>
+        <button type="submit" class="btn btn-sm btn-primary">Enroll Selected</button>
+        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="clearAll()">Clear</button>
+    </div>
+</div>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th style="width:40px"><input type="checkbox" class="form-check-input" id="selectAll" onchange="toggleAll()"></th>
+            <th>ID</th><th>Name</th><th>Email</th><th>Roll No</th><th>Subjects</th><th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for student in students %}
+        <tr>
+            <td><input type="checkbox" name="student_ids" value="{{ student.id }}" class="form-check-input student-cb" onchange="updateBatchBar()"></td>
+            <td>{{ student.id }}</td>
+            <td>{{ student.name }}</td>
+            <td>{{ student.email or '-' }}</td>
+            <td>{{ student.roll_number }}</td>
+            <td>{{ student.subjects|map(attribute='name')|join(', ') or 'None' }}</td>
+            <td>
+                <a href="{{ url_for('enroll_student', id=student.id) }}" class="btn btn-sm btn-info">Enroll</a>
+                <a href="{{ url_for('edit_student', id=student.id) }}" class="btn btn-sm btn-warning">Edit</a>
+                <a href="{{ url_for('delete_student', id=student.id) }}" class="btn btn-sm btn-danger" onclick="return confirm('Delete?')">Delete</a>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+</form>
+
+<script>
+function toggleAll() {
+    var checked = document.getElementById('selectAll').checked;
+    document.querySelectorAll('.student-cb').forEach(function(cb) { cb.checked = checked; });
+    updateBatchBar();
+}
+function updateBatchBar() {
+    var checked = document.querySelectorAll('.student-cb:checked').length;
+    var bar = document.getElementById('batchBar');
+    document.getElementById('selectedCount').textContent = checked + ' selected';
+    if (checked > 0) bar.classList.remove('d-none'); else bar.classList.add('d-none');
+}
+function clearAll() {
+    document.querySelectorAll('.student-cb').forEach(function(cb) { cb.checked = false; });
+    document.getElementById('selectAll').checked = false;
+    updateBatchBar();
+}
+</script>
+{% endblock %}

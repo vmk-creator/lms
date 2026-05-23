@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+{% block title %}Enroll Students - {{ subject.name }}{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2>Enroll Students in <span class="text-primary">{{ subject.display_name() }} ({{ subject.code }})</span></h2>
+    <div>
+        <button class="btn btn-outline-secondary btn-sm" onclick="toggleAll()">Toggle All</button>
+    </div>
+</div>
+
+<form method="POST">
+    <div class="mb-3">
+        <input type="text" class="form-control" id="searchInput" placeholder="Search by name or roll number..." onkeyup="filterTable()">
+    </div>
+    <table class="table table-striped" id="enrollTable">
+        <thead>
+            <tr><th style="width:40px">Enroll</th><th>Roll No</th><th>Name</th><th>Email</th></tr>
+        </thead>
+        <tbody>
+            {% for student in students %}
+            <tr>
+                <td><input type="checkbox" name="students" value="{{ student.id }}"
+                           class="form-check-input" {% if student.id in enrolled_ids %}checked{% endif %}></td>
+                <td>{{ student.roll_number }}</td>
+                <td>{{ student.name }}</td>
+                <td>{{ student.email or '-' }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <button type="submit" class="btn btn-primary">Save Enrollment</button>
+    <a href="{{ url_for('subjects') }}" class="btn btn-secondary">Cancel</a>
+</form>
+
+<script>
+function toggleAll() {
+    var checkboxes = document.querySelectorAll('#enrollTable tbody input[type="checkbox"]');
+    var visible = Array.from(checkboxes).filter(cb => cb.closest('tr').style.display !== 'none');
+    var allChecked = visible.every(cb => cb.checked);
+    visible.forEach(cb => cb.checked = !allChecked);
+}
+function filterTable() {
+    var input = document.getElementById('searchInput').value.toLowerCase();
+    document.querySelectorAll('#enrollTable tbody tr').forEach(function(row) {
+        var text = row.textContent.toLowerCase();
+        row.style.display = text.includes(input) ? '' : 'none';
+    });
+}
+</script>
+{% endblock %}
